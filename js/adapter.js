@@ -5,7 +5,7 @@ var reattachMediaStream = null
 var webrtcDetectedBrowser = null
 
 if (navigator.mozGetUserMedia) {
-    console.log('This appears to be Firefox')
+    //  console.log('This appears to be Firefox')
 
     webrtcDetectedBrowser = 'firefox'
 
@@ -44,7 +44,7 @@ if (navigator.mozGetUserMedia) {
         return []
     }
 } else if (navigator.webkitGetUserMedia) {
-    console.log('This appears to be Chrome')
+    //console.log('This appears to be Chrome')
 
     webrtcDetectedBrowser = 'chrome'
 

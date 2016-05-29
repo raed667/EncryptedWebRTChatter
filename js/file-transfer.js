@@ -48,9 +48,9 @@ var FileSender = {
         }
 
         var packetSize = 1000 /* chars */,
-                textToTransfer = '',
-                numberOfPackets = 0,
-                packets = 0
+            textToTransfer = '',
+            numberOfPackets = 0,
+            packets = 0
 
         function onReadAsDataURL(event, text) {
             var data = {
@@ -94,9 +94,9 @@ var FileSender = {
 
 function FileReceiver() {
     var content = [],
-            fileName = '',
-            packets = 0,
-            numberOfPackets = 0
+        fileName = '',
+        packets = 0,
+        numberOfPackets = 0
 
     function receive(data, config) {
         /* if firefox nightly & file blob shared */
@@ -159,7 +159,7 @@ var FileSaver = {
 
         save.dispatchEvent(evt)
 
-                ;
+        ;
         (window.URL || window.webkitURL).revokeObjectURL(save.href)
     }
 }
