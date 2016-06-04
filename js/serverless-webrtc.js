@@ -9,7 +9,7 @@ var cfg = {'iceServers': [{'url': 'stun:23.21.150.121'}]},
     con = {'optional': [{'DtlsSrtpKeyAgreement': true}]};
 
 /* THIS IS ALICE, THE CALLER/SENDER */
-
+var isSession = false;
 var pc1 = new RTCPeerConnection(cfg, con),
     dc1 = null, tn1 = null;
 
@@ -19,6 +19,69 @@ var activedc;
 
 var pc1icedone = false;
 
+function getMyId() {
+    var myUsername = localStorage.getItem("username");
+    var myPrivateKey = localStorage.getItem("privateKey");
+    var mypublicKey = localStorage.getItem("publicKey");
+
+
+    if (myUsername != null && myPrivateKey != null && mypublicKey != null) {
+        var retval = new Object();
+        retval.username = myUsername;
+        retval.publicKey = mypublicKey;
+        retval.encryptedPrivateKey = myPrivateKey;
+        return retval;
+    } else {
+        return null;
+    }
+}
+
+console.log("Get from DB");
+var myId = getMyId();
+
+$("#joinBtn").prop('disabled', true);
+$("#createBtn").prop('disabled', true);
+
+
+if (myId != null) {
+    document.getElementById("username").value = myId.username;
+}
+
+$("#newId").click(function () {
+    username = document.getElementById("username").value;
+
+    var passphrase = document.getElementById("passphrase").value;
+
+    if (myId == null) {
+        localStorage.setItem("username", username);
+        // no id
+        createKeyPair(passphrase);
+    } else {
+        // id found
+        publicKey = myId.publicKey;
+        decryptPrivateKey(myId.encryptedPrivateKey, passphrase);
+    }
+
+    $("#idForm").remove();
+    $("#joinBtn").prop('disabled', false);
+    $("#createBtn").prop('disabled', false);
+});
+
+
+$("#deleteId").click(function () {
+    document.getElementById("username").value = "";
+    document.getElementById("passphrase").value = "";
+
+    localStorage.removeItem("username");
+    localStorage.removeItem("privateKey");
+    localStorage.removeItem("publicKey");
+    localStorage.removeItem("salt");
+    localStorage.removeItem("keyIV");
+
+    alert("Done.")
+});
+
+
 $('#showLocalOffer').modal('hide');
 $('#getRemoteAnswer').modal('hide');
 $('#waitForConnection').modal('hide');
@@ -26,14 +89,13 @@ $('#createOrJoin').modal('show');
 
 $('#createBtn').click(function () {
     $('#showLocalOffer').modal('show');
-    // TODO : Check if keyPair exist in memory, if so use it or revoke it.
-    createKeyPair();
     createLocalOffer()
+    isSession = true;
 });
 
 $('#joinBtn').click(function () {
-    createKeyPair();
     $('#getRemoteOffer').modal('show')
+    isSession = true;
 });
 
 $('#offerSentBtn').click(function () {
@@ -67,19 +129,22 @@ function handleMessage(message) {
 
     if (message.type == "publickey1") {
         theirpPublicKey = message.value;
+        theirUsername = message.username;
+
         //console.log(theirpPublicKey)
         //SEND OUR OWN PUBLIC KEY
         var channel = new RTCMultiSession()
-        channel.send({message: {"type": "publickey2", "value": publicKey}})
+        channel.send({message: {"type": "publickey2", "value": publicKey, "username": username}})
 
     } else if (message.type == "publickey2") {
         theirpPublicKey = message.value;
+        theirUsername = message.username;
         //   console.log(theirpPublicKey)
     }
     else if (message.type == "data") {
         // writeToChatLog(message.value, 'text-info')
         // Scroll chat text area to the bottom on new input.
-        decrypt(message.value)
+        decrypt(message.value);
         $('#chatlog').scrollTop($('#chatlog')[0].scrollHeight)
     } else if (message.type == "status" && message.value == "left") {
         alert("They left the conversation");
@@ -112,7 +177,7 @@ function setupDC1() {
 
 
             var channel = new RTCMultiSession();
-            channel.send({message: JSON.stringify({"type": "publickey1", "value": publicKey})})
+            channel.send({message: JSON.stringify({"type": "publickey1", "value": publicKey, "username": username})})
         };
         dc1.onmessage = function (e) {
             //   console.log('Got message (pc1)', e.data);
@@ -275,12 +340,14 @@ function writeToChatLog(message, message_type) {
 }
 
 $(window).bind('beforeunload', function () {
-    return 'If you leave this page, your session will be lost.';
+    if (isSession) {
+        return 'If you leave this page, your session will be lost.';
+    }
 });
 
 window.onunload = function () {
     var channel = new RTCMultiSession()
-    channel.send({message: {"type": "status", "value": "left"}})
+    channel.send({message: {"type": "status", "value": "left"}});
 
-    $("#messageTextBox").prop('disabled', true);
+    //$("#messageTextBox").prop('disabled', true);
 }

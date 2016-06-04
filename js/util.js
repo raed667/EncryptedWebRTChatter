@@ -15,3 +15,18 @@ function base64ToByteArray(base64String) {
     }
     return byteArray;
 }
+
+
+function stringToByteArray(s) {
+    if ("TextEncoder" in window) {
+        encoder = new window.TextEncoder;
+        return encoder.encode(s);
+    }
+
+    // Otherwise, fall back to 7-bit ASCII only
+    var result = new Uint8Array(s.length);
+    for (var i = 0; i < s.length; i++) {
+        result[i] = s.charCodeAt(i);
+    }
+    return result;
+}

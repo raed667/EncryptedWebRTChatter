@@ -23,7 +23,7 @@
     <link href="css/style.css" rel="stylesheet">
 </head>
 <body>
-<a href="https://github.com/RaedsLab" target="_blank" class="github-corner">
+<a href="https://github.com/RaedsLab/EncryptedWebRTChatter" target="_blank" class="github-corner">
     <svg width="80" height="80" viewBox="0 0 250 250"
          style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;">
         <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
@@ -124,7 +124,6 @@
         </div>
     </div>
 </div>
-
 <div class="modal fade" id="getRemoteAnswer" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -161,21 +160,41 @@
         </div>
     </div>
 </div>
-
 <div class="modal fade" id="createOrJoin" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="myModalLabel">Create or join a room?</h3>
             </div>
+            <div class="modal-body">
+                <form id="idForm" class="form-inline">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input required type="text" class="form-control" id="username" placeholder="Username">
+                    </div>
+                    <br>
+                    <div class="form-group">
+                        <label for="passphrase">Password</label>
+                        <input required type="password" class="form-control" id="passphrase" placeholder="Password">
+                    </div>
+                    <div class="form-group">
+                        <button type="button" id="newId" class="btn btn-default">Login</button>
+                        <button type="button" id="deleteId" class="btn btn-default btn-danger">Reset Id</button>
+                    </div>
+                </form>
+                <br>
+                <b>Usage guide :</b> <a target="_blank"
+                                        href="https://github.com/RaedsLab/EncryptedWebRTChatter/blob/master/README.md#how-it-works">link</a>.
+            </div>
             <div class="modal-footer">
                 <button class="btn" id="joinBtn" data-dismiss="modal" aria-hidden="true">Join</button>
-                <button class="btn btn-primary" id="createBtn" data-dismiss="modal" aria-hidden="true">Create</button>
+                <button class="btn btn-primary" id="createBtn" data-dismiss="modal" aria-hidden="true">Create
+                </button>
             </div>
         </div>
     </div>
 </div>
-
+<br>
 <footer>Credit to <a href="https://twitter.com/cjbprime" target="_blank">Chris Ball</a> for WebRTC code and <a
         href="https://twitter.com/charlesengelke" target="_blank">Charles
     Engelke</a> for Web Cryptography API presentation.

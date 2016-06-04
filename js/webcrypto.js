@@ -7,12 +7,123 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 var myKeys;
+var username;
 var publicKey;
 var privateKey;
 var theirpPublicKey;
+var theirUsername;
 var encryptedSessionKey;
 var message;
-function createKeyPair() {
+
+function convertPassphraseToKey(passphraseString, saltBase64) {
+    // Loading
+    console.log("Generating key...");
+
+    var iterations = 1000000;   // Longer is slower... hence stronger
+    var saltBytes = base64ToByteArray(saltBase64); //
+    var passphraseBytes = stringToByteArray(passphraseString);
+
+    // deriveKey needs to be given a base key. This is just a
+    // CryptoKey that represents the starting passphrase.
+    return window.crypto.subtle.importKey(
+        "raw", passphraseBytes, {name: "PBKDF2"}, false, ["deriveKey"]
+    ).then(function (baseKey) {
+        return window.crypto.subtle.deriveKey(
+            // Firefox currently only supports SHA-1 with PBKDF2
+            {name: "PBKDF2", salt: saltBytes, iterations: iterations, hash: "SHA-1"},
+            baseKey,
+            {name: "AES-CBC", length: 256}, // Resulting key type we want
+            true,  // exportable
+            ["encrypt", "decrypt"]
+        );
+    }).catch(function (err) {
+        alert("Could not generate a key from passphrase '" + passphrase + "': " + err.message);
+    });
+}
+
+function decryptPrivateKey(encryptedPrivaeKey, passphrase) {
+    var base64Salt = localStorage.getItem("salt");
+    var salt = base64ToByteArray(base64Salt);
+
+
+    console.debug("Cipher[1] :" + encryptedPrivaeKey);
+
+
+    convertPassphraseToKey(passphrase, base64Salt).then(function (key) {
+
+        console.log('Decrypting private key...');
+        // console.debug(aesKey);
+        var ciphertextBytes = base64ToByteArray(encryptedPrivaeKey);
+
+        /// CALL AES CBC ENCRYPT
+        var ivBase64 = (localStorage.getItem("keyIV"));
+        var iv = base64ToByteArray(ivBase64);
+
+        window.crypto.subtle.encrypt(
+            {name: "AES-CBC", iv: iv},
+            key,
+            ciphertextBytes
+        ).then(function (plaintextBuf) {
+            // Encode ciphertext to base 64 and put in Ciphertext field
+            plaintextBytes = new Uint8Array(plaintextBuf);
+            base64plaintext = byteArrayToBase64(plaintextBytes);
+
+            /// SET GLOBAL VARIABLE AS PRIVATE KEY
+            privateKey = base64plaintext;
+
+            console.debug("Clear [1] :" + privateKey);
+
+            console.log("Done: Decrypting of private key")
+
+        }).catch(function (err) {
+            alert("Decryption error: " + err.message);
+        });
+    });
+}
+
+
+function encryptPrivateKey(privateKey, passphrase) {
+
+    console.debug("Clear[0] :" + privateKey);
+
+    var salt = window.crypto.getRandomValues(new Uint8Array(16));
+    var base64Salt = byteArrayToBase64(salt);
+
+    localStorage.setItem("salt", base64Salt);
+
+    convertPassphraseToKey(passphrase, base64Salt).then(function (key) {
+
+        console.log('Encrypting private key...');
+        // console.debug(aesKey);
+        var plaintextBytes = base64ToByteArray(privateKey);
+
+        /// CALL AES CBC ENCRYPT
+        var iv = window.crypto.getRandomValues(new Uint8Array(16));
+        var ivBase64 = byteArrayToBase64(iv);
+        localStorage.setItem("keyIV", ivBase64);
+
+        window.crypto.subtle.encrypt(
+            {name: "AES-CBC", iv: iv},
+            key,
+            plaintextBytes
+        ).then(function (ciphertextBuf) {
+            // Encode ciphertext to base 64 and put in Ciphertext field
+            ciphertextBytes = new Uint8Array(ciphertextBuf);
+            base64Ciphertext = byteArrayToBase64(ciphertextBytes);
+            localStorage.setItem("privateKey", base64Ciphertext);
+
+            console.debug("Cipher[0] :" + base64Ciphertext);
+
+            console.log("Done: Encrypting of private key")
+
+        }).catch(function (err) {
+            alert("Encryption error: " + err.message);
+        });
+    });
+}
+
+
+function createKeyPair(passphrase) {
     window.crypto.subtle.generateKey(
         {
             name: "RSASSA-PKCS1-v1_5",
@@ -29,6 +140,7 @@ function createKeyPair() {
             var spkiBytes = new Uint8Array(spkiBuffer);
             var spkiString = byteArrayToBase64(spkiBytes);
             publicKey = spkiString;
+            localStorage.setItem("publicKey", publicKey);
         }).catch(function (err) {
             alert("Could not export public key: " + err.message);
         });
@@ -38,6 +150,9 @@ function createKeyPair() {
             var pkcs8Bytes = new Uint8Array(pkcs8Buffer);
             var pkcs8String = byteArrayToBase64(pkcs8Bytes);
             privateKey = pkcs8String;
+
+            encryptPrivateKey(privateKey, passphrase)
+
         }).catch(function (err) {
             alert("Could not export private key: " + err.message);
         });
@@ -123,6 +238,9 @@ function encrypt(inputPlaintext) {
 function decrypt(message) {
     var pkcs8Bytes = base64ToByteArray(privateKey);
 
+    console.log("decrypt");
+    console.debug(privateKey);
+
     // We need a CryptoKey object holding the private key to get started
     window.crypto.subtle.importKey(
         "pkcs8",
@@ -157,7 +275,7 @@ function decrypt(message) {
                 ).then(function (plaintextBuffer) {
 
                     var plaintextDecypted = String.fromCharCode.apply(null, new Uint8Array(plaintextBuffer));
-                    writeToChatLog(plaintextDecypted, 'text-info')
+                    writeToChatLog(theirUsername + ": " + plaintextDecypted, 'text-info')
 
                 }).catch(function (err) {
                     alert("Could not decrypt the ciphertext: " + err.message);
