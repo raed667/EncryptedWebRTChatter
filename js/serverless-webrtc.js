@@ -123,22 +123,65 @@ $('#answerRecdBtn').click(function () {
 });
 
 
+function setTheirPublicKey(msgTheirPublicKey, msgTheirName) {
+
+    // Check if I know the person
+    var friendsStr = localStorage.getItem("friends");
+    if (friendsStr == null) {
+
+        var friends = new Array();
+        friends[0] = ({"id": msgTheirName, "key": msgTheirPublicKey});
+        localStorage.setItem("friends", JSON.stringify(friends));
+
+    } else {
+        var friends = JSON.parse(friendsStr);
+
+        var isKnown = false;
+        var oldKey;
+        friends.forEach(function (friend) {
+            if (friend.id === msgTheirName) {
+                isKnown = true;
+                oldKey = friend.key;
+            }
+        });
+
+        if (isKnown) {
+            if (oldKey === msgTheirPublicKey) {
+                //// WE KNOW THIS PERSON
+                console.log("All is gut");
+            } else {
+                /// KEY HAS CHANGED ! MAYBE IMPERSONATOR
+                console.error("Something smells wrong");
+            }
+        } else {
+            friends.push({"id": msgTheirName, "key": msgTheirPublicKey});
+            localStorage.setItem("friends", JSON.stringify(friends));
+        }
+    }
+
+}
+
+
 function handleMessage(message) {
     if (typeof message === "string")
         message = JSON.parse(message);
 
     if (message.type == "publickey1") {
+
         theirpPublicKey = message.value;
         theirUsername = message.username;
+        setTheirPublicKey(message.value, message.username);
 
-        //console.log(theirpPublicKey)
         //SEND OUR OWN PUBLIC KEY
-        var channel = new RTCMultiSession()
+        var channel = new RTCMultiSession();
         channel.send({message: {"type": "publickey2", "value": publicKey, "username": username}})
 
     } else if (message.type == "publickey2") {
+
         theirpPublicKey = message.value;
         theirUsername = message.username;
+        setTheirPublicKey(message.value, message.username);
+
         //   console.log(theirpPublicKey)
     }
     else if (message.type == "data") {

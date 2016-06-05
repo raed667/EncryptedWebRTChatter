@@ -37,7 +37,7 @@ function convertPassphraseToKey(passphraseString, saltBase64) {
             ["encrypt", "decrypt"]
         );
     }).catch(function (err) {
-        alert("Could not generate a key from passphrase '" + passphrase + "': " + err.message);
+        alert("Could not generate a key from passphrase '" + passphraseString + "': " + err.message);
     });
 }
 
