@@ -1,11 +1,18 @@
 var path = require('path')
 var webpack = require('webpack')
+
 module.exports = {
   context: path.join(__dirname, 'js'),
-  entry: './adapter.js',
+  entry: {
+    adapter: './adapter.js',
+    util: './util.js',
+    webcrypto: './webcrypto.js',
+    serverlessWebrtc: './serverless-webrtc.js',
+    fileTransfer: './file-transfer.js'
+  },
   output: {
     path: path.join(__dirname, 'dist'),
-    filename: '[name].bundle.js'
+    filename: 'bundle.js'
   },
   devtool: 'source-map',
   module: {
@@ -28,8 +35,5 @@ module.exports = {
     new webpack.EnvironmentPlugin([
       'NODE_ENV'
     ])
-  ],
-  devServer: {
-    historyApiFallback: true
-  }
+  ]
 }
