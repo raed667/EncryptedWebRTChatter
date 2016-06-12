@@ -1,0 +1,43 @@
+{
+  "name": "encrypted-web-rtc-chatter",
+  "version": "0.0.1",
+  "description": "WebRTC without a signaling server -- the WebRTC offer/answer exchange is performed manually by the users",
+  "main": "js/adapter.js",
+  "scripts": {
+    "start": "webpack-dev-server --host=0.0.0.0 --port=9020 --inline --hot",
+    "clean": "rimraf dist && rimraf gh-pages",
+    "build": "npm run clean && NODE_ENV=production webpack -p",
+    "publish": "npm run build && ./bin/publish.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RaedsLab/EncryptedWebRTChatter.git"
+  },
+  "keywords": [
+    "WebRTC",
+    "Chat"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/RaedsLab/EncryptedWebRTChatter/issues"
+  },
+  "homepage": "https://github.com/RaedsLab/EncryptedWebRTChatter#readme",
+  "dependencies": {
+    "react": "^15.1.0",
+    "react-css-modules": "^3.7.6",
+    "react-dom": "^15.1.0",
+    "react-router": "^2.4.1"
+  },
+  "devDependencies": {
+    "babel-eslint": "^6.0.4",
+    "babel-loader": "^6.2.4",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-react": "^6.5.0",
+    "css-loader": "^0.23.1",
+    "rimraf": "^2.5.2",
+    "standard": "^7.1.2",
+    "webpack": "^1.13.1",
+    "webpack-dev-server": "^1.14.1"
+  }
+}
